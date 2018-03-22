@@ -1,0 +1,75 @@
+#include <RFM69.h>
+#include <TimeLib.h>
+#include <SPI.h>
+#include "config.h"
+
+#define ACK_TIME      15
+
+
+/**
+ * Serial Data from PC Format:
+ * NodeID;COMMAND;VALUE
+ */
+
+RFM69 radio;
+String inData;
+String serial_data = "";
+bool serial_process = false;
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println("Starting Gateway System...");
+  radio.initialize(FREQUENCY, NODEID, NETWORKID);
+  radio.encrypt(ENCRYPTKEY);
+
+}
+
+void loop() {
+  if (Serial.available()) {
+    char recieved = Serial.read();
+    inData += recieved;
+    if (recieved == '\n') {
+      serial_data = inData;
+      serial_process = true;
+      inData = "";
+    }
+    
+  }
+  if (serial_process == true) {
+    uint8_t index = serial_data.indexOf(';');
+    String rfm_receiver_id = serial_data.substring(0, index);
+    String rfm_receiver_payload = serial_data.substring(index + 1, -1);
+
+    char buffer[rfm_receiver_payload.length()];
+    
+    rfm_receiver_payload.toCharArray(buffer, rfm_receiver_payload.length());
+    
+    Serial.print("Index: ");
+    Serial.println(index);
+    Serial.println(rfm_receiver_id);
+    Serial.println(rfm_receiver_payload);
+
+    radio.sendWithRetry(rfm_receiver_id.toInt(), buffer, strlen(buffer), 2);
+
+    serial_data = "";
+    serial_process = false;
+  }
+
+  if (radio.receiveDone()) {
+    Serial.print('[');
+    Serial.print(radio.SENDERID, DEC);
+    Serial.print("] ");
+    
+    for (byte i = 0; i < radio.DATALEN; i++) {
+      Serial.print((char)radio.DATA[i]);
+    }
+    Serial.print("[RX_RSSI:");
+    Serial.print(radio.RSSI);
+    Serial.println("]");
+    
+     if (radio.ACKRequested()) {
+      byte theNodeID = radio.SENDERID;
+      radio.sendACK();
+    }
+  }
+}
