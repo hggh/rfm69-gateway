@@ -1,1 +1,3 @@
-rfm69-gateway/config.h
+src/config.h
+.pioenvs
+.piolibdeps

@@ -1,15 +1,8 @@
 #include <RFM69.h>
-#include <TimeLib.h>
-#include <SPI.h>
+
 #include "config.h"
 
 #define ACK_TIME      15
-
-
-/**
- * Serial Data from PC Format:
- * NodeID;COMMAND;VALUE
- */
 
 RFM69 radio;
 String inData;
@@ -21,7 +14,6 @@ void setup() {
   Serial.println("Starting Gateway System...");
   radio.initialize(FREQUENCY, NODEID, NETWORKID);
   radio.encrypt(ENCRYPTKEY);
-
 }
 
 void loop() {
@@ -49,7 +41,7 @@ void loop() {
     Serial.println(rfm_receiver_id);
     Serial.println(rfm_receiver_payload);
 
-    radio.sendWithRetry(rfm_receiver_id.toInt(), buffer, strlen(buffer), 2);
+    radio.sendWithRetry(rfm_receiver_id.toInt(), buffer, strlen(buffer), 5, 10);
 
     serial_data = "";
     serial_process = false;
