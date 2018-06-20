@@ -1,3 +1,4 @@
+#include <avr/power.h>
 #include <RFM69.h>
 
 #include "config.h"
@@ -10,6 +11,10 @@ String serial_data = "";
 bool serial_process = false;
 
 void setup() {
+  ADCSRA &= ~(1 << 7);
+  power_adc_disable();
+  power_twi_disable();
+
   Serial.begin(9600);
   Serial.println("Starting Gateway System...");
   radio.initialize(FREQUENCY, NODEID, NETWORKID);
