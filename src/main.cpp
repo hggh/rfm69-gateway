@@ -9,6 +9,7 @@ RFM69 radio;
 String inData;
 String serial_data = "";
 bool serial_process = false;
+bool rfm69_send_burst = false;
 
 void setup() {
   ADCSRA &= ~(1 << 7);
@@ -33,6 +34,11 @@ void loop() {
     
   }
   if (serial_process == true) {
+    rfm69_send_burst = false;
+    if (serial_data.startsWith("B")) {
+      rfm69_send_burst = true;
+      serial_data.remove(0, 1);
+    }
     uint8_t index = serial_data.indexOf(';');
     String rfm_receiver_id = serial_data.substring(0, index);
     String rfm_receiver_payload = serial_data.substring(index + 1, -1);
@@ -46,7 +52,12 @@ void loop() {
     Serial.println(rfm_receiver_id);
     Serial.println(rfm_receiver_payload);
 
-    radio.sendWithRetry(rfm_receiver_id.toInt(), buffer, strlen(buffer), 5, 10);
+    if (rfm69_send_burst == true) {
+      radio.listenModeSendBurst(rfm_receiver_id.toInt(), buffer, strlen(buffer));
+    }
+    else {
+      radio.sendWithRetry(rfm_receiver_id.toInt(), buffer, strlen(buffer), 5, 10);
+    }
 
     serial_data = "";
     serial_process = false;
