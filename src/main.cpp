@@ -52,9 +52,6 @@ void loop() {
   }
 
   if (radio.receiveDone()) {
-     if (radio.ACKRequested()) {
-      radio.sendACK();
-    }
     Serial.print('[');
     Serial.print(radio.SENDERID, DEC);
     Serial.print("] ");
@@ -65,6 +62,10 @@ void loop() {
     Serial.print("[RX_RSSI:");
     Serial.print(radio.RSSI);
     Serial.println("]");
+
+    if (radio.ACKRequested()) {
+      radio.sendACK();
+    }
     
   }
 }
