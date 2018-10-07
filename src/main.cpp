@@ -66,6 +66,7 @@ void loop() {
     if (radio.ACKRequested()) {
       radio.sendACK();
     }
+    Serial.flush();
     
   }
 }
