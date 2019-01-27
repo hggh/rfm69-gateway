@@ -40,33 +40,33 @@ void loop() {
     
     rfm_receiver_payload.toCharArray(buffer, rfm_receiver_payload.length());
     
-    Serial.print("Index: ");
-    Serial.println(index);
-    Serial.println(rfm_receiver_id);
-    Serial.println(rfm_receiver_payload);
-
-    radio.sendWithRetry(rfm_receiver_id.toInt(), buffer, strlen(buffer), 5, 50);
+    radio.sendWithRetry(rfm_receiver_id.toInt(), buffer, strlen(buffer), 5, 70);
 
     serial_data = "";
     serial_process = false;
   }
 
   if (radio.receiveDone()) {
-    Serial.print('[');
-    Serial.print(radio.SENDERID, DEC);
-    Serial.print("] ");
+    uint8_t sender_id = radio.SENDERID;
+    uint8_t sender_rssi = radio.RSSI;
+    String data_recv = "";
     
     for (byte i = 0; i < radio.DATALEN; i++) {
-      Serial.print((char)radio.DATA[i]);
+      data_recv += (char)radio.DATA[i];
     }
-    Serial.print("[RX_RSSI:");
-    Serial.print(radio.RSSI);
-    Serial.println("]");
 
     if (radio.ACKRequested()) {
       radio.sendACK();
     }
+
+    Serial.print('[');
+    Serial.print(sender_id);
+    Serial.print("] ");
+    Serial.print(data_recv);
+    Serial.print("[RX_RSSI:");
+    Serial.print(sender_rssi);
+    Serial.println("]");
+
     Serial.flush();
-    
   }
 }
