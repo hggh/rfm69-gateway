@@ -1,19 +1,17 @@
 #include <avr/power.h>
+#include <avr/wdt.h>
 #include <RFM69.h>
-#include <JeeLib.h>
 
 #include "config.h"
 
 RFM69 radio;
 
-ISR(WDT_vect) {
-  Sleepy::watchdogEvent();
-}
-
 void setup() {
   ADCSRA &= ~(1 << 7);
   power_adc_disable();
   power_twi_disable();
+
+  wdt_enable(WDTO_2S);
 
   Serial.begin(9600);
   radio.initialize(FREQUENCY, NODEID, NETWORKID);
@@ -23,7 +21,7 @@ void setup() {
 void loop() {
   if (radio.receiveDone()) {
     uint8_t sender_id = radio.SENDERID;
-    uint8_t sender_rssi = radio.RSSI;
+    int sender_rssi = radio.RSSI;
     String data_recv = "";
     
     for (byte i = 0; i < radio.DATALEN; i++) {
@@ -44,7 +42,5 @@ void loop() {
 
     Serial.flush();
   }
-  radio.receiveDone();
-
-  Sleepy::powerDown();
+  wdt_reset();
 }
